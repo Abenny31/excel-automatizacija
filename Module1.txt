@@ -1,0 +1,425 @@
+Attribute VB_Name = "Module1"
+Option Explicit
+
+Sub Reset()
+
+    Dim iRow As Long
+    Dim sh As Worksheet
+    Set sh = ThisWorkbook.Sheets("POPIS_IZOLANATA")
+ 
+    
+    iRow = sh.Cells(Rows.Count, 1).End(xlUp).Row
+    With frmForm
+    
+    .Label17.Caption = iRow - 4
+        
+        .txtName.Value = ""
+        .optMale.Value = False
+        .optFemale.Value = False
+        .txtDatum.Value = ""
+        .txtDrzava.Value = ""
+        .txtPutovnica.Value = ""
+        .txtZaprimljen.Value = ""
+        .txtOtpusten.Value = ""
+        .optZdrav.Value = False
+        .optZarazen.Value = False
+        .txtNapomena.Value = ""
+        .txtSoba.Value = ""
+        .txtDijagnoza.Value = ""
+        
+        
+        
+        .txtName.BackColor = vbWhite
+        .txtDatum.BackColor = vbWhite
+        .txtDrzava.BackColor = vbWhite
+        .txtPutovnica.BackColor = vbWhite
+        .txtZaprimljen.BackColor = vbWhite
+        .txtOtpusten.BackColor = vbWhite
+        .txtNapomena.BackColor = vbWhite
+        .txtSoba.BackColor = vbWhite
+        .txtDijagnoza.BackColor = vbWhite
+        
+        '--------------------------------
+        
+        
+        
+        
+        .txtRowNumber.Value = ""
+        
+        
+        
+        'prikaz
+        
+        Call Add_SearchColumn
+        ThisWorkbook.Sheets("POPIS_IZOLANATA").AutoFilterMode = False
+        ThisWorkbook.Sheets("SearchData").AutoFilterMode = False
+        ThisWorkbook.Sheets("SearchData").Cells.Clear
+        
+        '-----------------------------------------------
+        
+        .lstDatabase.ColumnCount = 12
+        .lstDatabase.ColumnHeads = True
+        
+        .lstDatabase.ColumnWidths = "20,70,30,70,70,70,70,70,70,70,70,70"
+        
+        If iRow > 5 Then
+        
+            .lstDatabase.RowSource = "POPIS_IZOLANATA!A5:L" & iRow
+        Else
+        
+            .lstDatabase.RowSource = "POPIS_IZOLANATA!A5:L5"
+            
+        End If
+        
+        
+    
+    End With
+
+
+
+End Sub
+
+
+Sub Submit()
+
+    Dim sh As Worksheet
+    Dim iRow As Long
+    
+    
+    Set sh = ThisWorkbook.Sheets("POPIS_IZOLANATA")
+    
+    
+    
+    
+    
+    
+    Dim Id As Long
+    Id = CLng(frmForm.Label17.Caption)
+    
+    If frmForm.txtRowNumber.Value = "" Then
+    
+    iRow = sh.Range("A" & Application.Rows.Count).End(xlUp).Row + 1
+    
+    Else
+    
+    iRow = frmForm.txtRowNumber.Value
+    
+    End If
+    
+   
+    With sh
+    
+        .Cells(iRow, 1) = Id
+        
+        .Cells(iRow, 2) = frmForm.txtName.Value
+        
+        .Cells(iRow, 3) = IIf(frmForm.optFemale.Value = True, "Ž", "M")
+        
+        .Cells(iRow, 4) = frmForm.txtDatum.Value
+        
+        .Cells(iRow, 5) = frmForm.txtDrzava.Value
+        
+        .Cells(iRow, 6) = frmForm.txtPutovnica.Value
+        
+        .Cells(iRow, 7) = frmForm.txtZaprimljen.Value
+        
+        .Cells(iRow, 8) = frmForm.txtOtpusten.Value
+        
+        .Cells(iRow, 9) = frmForm.txtNapomena.Value
+        
+        .Cells(iRow, 10) = frmForm.txtSoba.Value
+        
+        .Cells(iRow, 11) = IIf(frmForm.optZdrav = True, "Nije zaražen", "Zaražen")
+        
+        .Cells(iRow, 12) = frmForm.txtDijagnoza.Value
+        
+    
+    End With
+
+
+End Sub
+
+
+Sub Show_Form()
+    
+    frmForm.Show
+
+End Sub
+
+
+Function Selected_List() As Long
+
+    Dim i As Long
+    
+    Selected_List = 0
+    
+    For i = 0 To frmForm.lstDatabase.ListCount - 1
+        
+        If frmForm.lstDatabase.Selected(i) = True Then
+        
+            Selected_List = i + 1
+            Exit For
+        End If
+        
+    Next i
+
+
+End Function
+
+
+Sub Add_SearchColumn()
+
+    frmForm.EnableEvents = False
+
+    With frmForm.cmbSearchColumn
+    
+        .Clear
+        
+        .AddItem "All"
+        
+        .AddItem "R.br"
+        .AddItem "Ime prezime"
+        .AddItem "Spol"
+        .AddItem "Datum Rodenja"
+        .AddItem "Drzava"
+        .AddItem "Broj putovnice"
+        .AddItem "Zaprimljen"
+        .AddItem "Otpusten"
+        .AddItem "Napomena"
+        .AddItem "Br. Sobe"
+        .AddItem "Status"
+        .AddItem "Dijagnoza"
+        
+        
+        .Value = "All"
+    
+    
+    End With
+    
+    frmForm.EnableEvents = True
+    
+    frmForm.txtSearch.Value = ""
+    frmForm.txtSearch.Enabled = False
+    frmForm.cmdSearch.Enabled = False
+
+End Sub
+
+
+Sub SearchData()
+
+    Application.ScreenUpdating = False
+    
+    Dim shDatabase As Worksheet ' Database sheet
+    Dim shSearchData As Worksheet 'SearchData sheet
+    
+    Dim iColumn As Integer 'To hold the selected column number in Database sheet
+    Dim iDatabaseRow As Long 'To store the last non-blank row number available in Database sheet
+    Dim iSearchRow As Long 'To hold the last non-blank row number available in SearachData sheet
+    
+    Dim sColumn As String 'To store the column selection
+    Dim sValue As String 'To hold the search text value
+    
+    
+    Set shDatabase = ThisWorkbook.Sheets("POPIS_IZOLANATA")
+    Set shSearchData = ThisWorkbook.Sheets("SearchData")
+    
+    
+    iDatabaseRow = ThisWorkbook.Sheets("POPIS_IZOLANATA").Range("A" & Application.Rows.Count).End(xlUp).Row
+    
+    
+    sColumn = frmForm.cmbSearchColumn.Value
+    
+    sValue = frmForm.txtSearch.Value
+    
+    
+    iColumn = Application.WorksheetFunction.Match(sColumn, shDatabase.Range("A4:L4"), 0)
+    
+    'Remove filter from Database worksheet
+    
+    If shDatabase.FilterMode = True Then
+    
+        shDatabase.AutoFilterMode = False
+    
+    End If
+
+    'Apply filter on Database worksheet
+    
+    If frmForm.cmbSearchColumn.Value = "R.br" Then
+    
+        shDatabase.Range("A4:L4" & iDatabaseRow).AutoFilter Field:=iColumn, Criteria1:=sValue
+    
+    Else
+    
+        shDatabase.Range("A4:L4" & iDatabaseRow).AutoFilter Field:=iColumn, Criteria1:="*" & sValue & "*"
+    
+    End If
+    
+    If Application.WorksheetFunction.Subtotal(3, shDatabase.Range("C:C")) >= 2 Then
+    
+        'Code to remove the previous data from SearchData worksheet
+        
+        shSearchData.Cells.Clear
+        
+        shDatabase.AutoFilter.Range.Copy shSearchData.Range("A5")
+        
+        Application.CutCopyMode = False
+        
+        iSearchRow = shSearchData.Range("A" & Application.Rows.Count).End(xlUp).Row
+        
+        frmForm.lstDatabase.ColumnCount = 12
+        
+        frmForm.lstDatabase.ColumnWidths = "20,70,30,70,70,70,70,70,70,70,70,70"
+        
+        If iSearchRow > 1 Then
+        
+            frmForm.lstDatabase.RowSource = "SearchData!A5:L" & iSearchRow
+            
+            MsgBox "Pronaðen zapis."
+        
+        End If
+        
+        
+    Else
+    
+       MsgBox "Nema zapisa."
+    
+    End If
+
+    shDatabase.AutoFilterMode = False
+    Application.ScreenUpdating = True
+
+
+End Sub
+
+
+Function ValidateEntries() As Boolean
+
+    ValidateEntries = True
+    
+    Dim iEmployeeID As Variant
+    
+    Dim sh As Worksheet
+    
+    Set sh = ThisWorkbook.Sheets("Print")
+    
+    iEmployeeID = frmForm.Label17
+    
+    With frmForm
+    
+        
+        .txtName.BackColor = vbWhite
+        .txtDatum.BackColor = vbWhite
+        .txtDrzava.BackColor = vbWhite
+        .txtPutovnica.BackColor = vbWhite
+        .txtZaprimljen.BackColor = vbWhite
+        .txtOtpusten.BackColor = vbWhite
+        .txtNapomena.BackColor = vbWhite
+        .txtSoba.BackColor = vbWhite
+        .txtDijagnoza.BackColor = vbWhite
+        '--------------------------------
+        
+        
+        If Trim(.txtName.Value) = "" Then
+        
+            MsgBox "Unesite ime i prezime.", vbOKOnly + vbInformation, "Ime Prezime"
+            ValidateEntries = False
+            .txtName.BackColor = vbRed
+            .txtName.SetFocus
+            Exit Function
+            
+        End If
+        
+        
+        
+        
+        
+        If .optFemale.Value = False And .optMale.Value = False Then
+            
+            MsgBox "Izaberite spol.", vbOKOnly + vbInformation, "Spol"
+            ValidateEntries = False
+            Exit Function
+        
+        End If
+        
+ 
+    End With
+
+
+
+End Function
+
+Sub Save_dnevno()
+Dim shp As Shape
+Dim strFileExists As String
+Dim strFileName As String
+strFileName = "C:\Users\Ivana\Desktop\Dnevno_izvješæe_" & Day(Date) & "." & Month(Date) & "." & Year(Date) & "."
+strFileExists = Dir(strFileName)
+ActiveSheet.Copy
+For Each shp In ActiveSheet.Shapes
+shp.Delete
+Next shp
+Application.DisplayAlerts = False
+Application.EnableEvents = False
+If strFileExists = "" Then
+ChDir "C:\Users\Ivana\Desktop\"
+ActiveWorkbook.SaveAs Filename:="C:\Users\Ivana\Desktop\Dnevno_izvješæe_" & Day(Date) & "." & Month(Date) & "." & Year(Date) & ".xlsx"
+Else
+ChDir "C:\Users\Ivana\Desktop\"
+ActiveWorkbook.SaveAs Filename:="C:\Users\Ivana\Desktop\Dnevno_izvješæe_" & Day(Date) & "." & Month(Date) & "." & Year(Date) & ". Ispravak.xlsx" ', FileFormat:=".xlsx"
+End If
+Application.EnableEvents = True
+Application.DisplayAlerts = True
+
+End Sub
+
+
+Sub Dnevno_izvjesce()
+ActiveWorkbook.Sheets("IZVJEŠTAJ").Activate
+Call ocisti_dnevno
+End Sub
+
+Sub ocisti_dnevno()
+Dim ws As Worksheet
+Set ws = ThisWorkbook.Sheets("IZVJEŠTAJ")
+
+ws.Range("C7:C18").ClearContents
+ws.Range("C21:C23").ClearContents
+ws.Range("C26:C27").ClearContents
+ws.Range("C30:C32").ClearContents
+ws.Range("E20:H33").ClearContents
+ws.Range("G6").ClearContents
+ws.Range("G8").ClearContents
+ws.Range("H10").ClearContents
+ws.Range("H11").ClearContents
+ws.Range("H12").ClearContents
+ws.Range("H13").ClearContents
+ws.Range("H14").ClearContents
+ws.Range("H15").ClearContents
+ws.Range("H16").ClearContents
+ws.Range("E4").Value = Date
+
+End Sub
+
+Sub uredi_dnevni()
+ActiveWorkbook.Sheets("IZVJEŠTAJ").Activate
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

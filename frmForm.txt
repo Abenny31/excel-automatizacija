@@ -1,0 +1,210 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmForm 
+   Caption         =   "Upis Izolanata"
+   ClientHeight    =   10296
+   ClientLeft      =   120
+   ClientTop       =   468
+   ClientWidth     =   16152
+   OleObjectBlob   =   "frmForm.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "frmForm"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+Public EnableEvents As Boolean
+
+Private Sub cmbSearchColumn_Change()
+
+    If Me.EnableEvents = False Then Exit Sub
+    
+    If Me.cmbSearchColumn.Value = "All" Then
+    
+        Call Reset
+    Else
+    
+        Me.txtSearch.Value = ""
+        Me.txtSearch.Enabled = True
+        Me.cmdSearch.Enabled = True
+    
+    End If
+
+
+End Sub
+
+Private Sub cmdDelete_Click()
+    
+    Dim iRow As Long
+    
+    If Selected_List = 0 Then
+    
+        MsgBox "Nije zabilježen redak.", vbOKOnly + vbInformation, "Delete"
+        Exit Sub
+    End If
+    
+    Dim i As VbMsgBoxResult
+    
+    i = MsgBox("Želite li izbrisati stavku?", vbYesNo + vbQuestion, "Confirmation")
+    
+    If i = vbNo Then Exit Sub
+    
+    'Dim sh As Worksheet
+    'Set sh = ThisWorkbook.Sheets("POPIS_IZOLANATA")
+ 
+    
+    'iRow = sh.Cells(Rows.Count, 1).End(xlUp).Row
+    iRow = Application.WorksheetFunction.Match(Me.lstDatabase.List(Me.lstDatabase.ListIndex, 0), _
+   ThisWorkbook.Sheets("POPIS_IZOLANATA").Range("A:A"), 0)
+    
+    
+    ThisWorkbook.Sheets("POPIS_IZOLANATA").Rows(iRow).Delete
+    
+    Call Reset
+    
+    MsgBox "Stavka je izbrisana.", vbOKOnly + vbInformation, "Deleted"
+    
+    
+    
+End Sub
+
+Private Sub cmdEdit_Click()
+    
+    If Selected_List = 0 Then
+    
+        MsgBox "Nije zabilježen redak.", vbOKOnly + vbInformation, "Edit"
+        
+        Exit Sub
+    
+    End If
+    
+    'Code to update the value to respective controls
+    
+    Dim sGender As String
+    
+    Dim sStatus As String
+    Me.txtRowNumber.Value = Application.WorksheetFunction.Match(Me.lstDatabase.List(Me.lstDatabase.ListIndex, 0), _
+    ThisWorkbook.Sheets("POPIS_IZOLANATA").Range("A:A"), 0)
+    
+    Me.Label17 = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 0)
+    
+    Me.txtName.Value = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 1)
+    
+    sGender = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 2)
+    
+    Me.txtDatum = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 3)
+    
+    Me.txtDrzava = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 4)
+    
+    Me.txtPutovnica = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 5)
+    
+    Me.txtZaprimljen = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 6)
+    
+    Me.txtOtpusten = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 7)
+    
+    sStatus = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 8)
+    
+    Me.txtNapomena = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 9)
+    
+    Me.txtSoba = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 10)
+    
+    Me.txtDijagnoza = Me.lstDatabase.List(Me.lstDatabase.ListIndex, 11)
+    
+   If sStatus = "Nije zaražen" Then
+    Me.optZdrav.Value = True
+    
+    Else
+    Me.optZarazen = True
+    
+    End If
+    
+    If sGender = "Female" Then
+    
+        Me.optFemale.Value = True
+    Else
+    
+        Me.optMale.Value = True
+        
+    End If
+    
+    
+    
+    
+    MsgBox "Unesite promjene i pritisnite 'Save' tipku.", vbOKOnly + vbInformation, "Edit"
+    
+    
+    
+End Sub
+
+Private Sub cmdPrint_Click()
+    
+     
+    Dim msgValue As VbMsgBoxResult
+    
+    msgValue = MsgBox("Do you want to print the employee details?", vbYesNo + vbInformation, "Print")
+    
+    If msgValue = vbNo Then Exit Sub
+    
+    If ValidatePrintDetails() = True Then
+    
+        Call Print_Form
+        
+    End If
+    
+    
+End Sub
+
+Private Sub cmdReset_Click()
+    Dim msgValue As VbMsgBoxResult
+    
+    msgValue = MsgBox("Želite li poništiti promjene?", vbYesNo + vbInformation, "Confirmation")
+    
+    If msgValue = vbNo Then Exit Sub
+    
+    Call Reset
+End Sub
+
+Private Sub cmdSave_Click()
+    
+    Dim msgValue As VbMsgBoxResult
+    
+    msgValue = MsgBox("Želite li spremiti promjene?", vbYesNo + vbInformation, "Confirmation")
+    
+    If msgValue = vbNo Then Exit Sub
+    
+    If ValidateEntries() = True Then
+    
+        Call Submit
+        Call Reset
+    End If
+    
+End Sub
+
+
+Private Sub cmdSearch_Click()
+
+    If Me.txtSearch.Value = "" Then
+    
+        MsgBox "PLease enter the search value.", vbOKOnly + vbInformation, "Search"
+        Exit Sub
+    
+    End If
+    
+    Call SearchData
+    
+    
+    
+End Sub
+
+
+
+Private Sub UserForm_Initialize()
+
+    Call Reset
+
+End Sub
+
+Private Sub Zatvori_Click()
+Unload Me
+End Sub
